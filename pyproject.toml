@@ -28,6 +28,7 @@ torch = [
 dash = "^2.18.2, <3.0.0"
 dash-bootstrap-components = "^1.0.0, <2.0.0"
 fire = "^0.7.0"
+ecologits = "^0.7.0"
 [tool.poetry.dev-dependencies]
 ruff = "^0.4.4"
 

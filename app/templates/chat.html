@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat with Emissions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        @import url('http://fonts.cdnfonts.com/css/campton');
+
+        body {
+            font-family: 'Campton', sans-serif;
+            background-image: url('./background_image');
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #0000008c;
+        }
+
+        textarea {
+            width: 80%;
+            max-width: 400px;
+            height: 100px;
+            padding: 0.5em;
+            font-size: 1em;
+            border-radius: 0.5em;
+            border: none;
+            margin-bottom: 1em;
+            resize: vertical;
+        }
+
+        button {
+            padding: 0.5em 1em;
+            font-size: 1em;
+            border: none;
+            border-radius: 0.5em;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 2em;
+            text-align: left;
+            font-size: 1em;
+            width: 80%;
+            max-width: 600px;
+            background: #ffffff1a;
+            padding: 1em;
+            border-radius: 0.5em;
+        }
+
+        #result h2 {
+            margin-top: 0;
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+
+        #result pre {
+            background: #00000055;
+            padding: 0.5em;
+            overflow-x: auto;
+            border-radius: 0.5em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Chat & Compute Emissions</h1>
+        <form id="chat-form">
+            <textarea id="text-input" placeholder="Enter a message for the chat service..." required></textarea>
+            <button type="submit">Send & Compute Emissions</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const text = document.getElementById('text-input').value;
+            const response = await fetch(`/chat_emissions?text=${encodeURIComponent(text)}`);
+            if (!response.ok) {
+                document.getElementById('result').innerText = 'Error: ' + response.statusText;
+                return;
+            }
+            const data = await response.json();
+            chat_response = data.chat_response;
+            if (!data.emissions) {
+                document.getElementById('result').innerText = 'No emissions data available.';
+                return;
+            }
+            let html = '<h2>Chat Response</h2>';
+            html += `<pre>${JSON.stringify(data.chat_response, null, 2)}</pre>`;
+            html += '<h2>Emission Metrics</h2>';
+            html += `<pre>${JSON.stringify(data.emissions, null, 2)}</pre>`;
+            document.getElementById('result').innerHTML = html;
+        });
+    </script>
+</body>
+
+</html>
