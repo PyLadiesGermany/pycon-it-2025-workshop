@@ -4,6 +4,9 @@ app/powermetrics_log.txt
 powermetrics_log.txt
 
 
+.DS_Store
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
