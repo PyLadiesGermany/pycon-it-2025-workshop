@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "python-prometheus-workshop"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+license = "MIT"
+package-mode = false
+
+[[tool.poetry.source]]
+name = "pytorch-cpu-src"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+prometheus-client = "^0.13.1"
+pytest = "^7.0.1"
+pytest-httpserver = "^1.0.4"
+requests = "^2.27.1"
+codecarbon = "^2.3.4"
+python-dotenv = "^1.0.1"
+transformers = "^4.52.3"
+torch = [
+        {platform = "darwin", version = "2.6.0", source = "pypi"},
+        {platform = "linux", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'", version = "2.6.0+cpu", source = "pytorch-cpu-src"}
+]
+dash = "^2.18.2, <3.0.0"
+dash-bootstrap-components = "^1.0.0, <2.0.0"
+fire = "^0.7.0"
+[tool.poetry.dev-dependencies]
+ruff = "^0.4.4"
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

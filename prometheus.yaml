@@ -1,0 +1,23 @@
+global:
+  scrape_interval:     10s # By default, scrape targets every 10 seconds.
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  # metrics_path defaults to '/metrics'
+  # scheme defaults to 'http'.
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+        - targets: ['pushgateway:9091']
+
+  - job_name: 'app'
+    static_configs:
+      - targets: ['app:8001']
+
+  - job_name: docker
+    static_configs:
+      - targets: ["host.docker.internal:9323"]
