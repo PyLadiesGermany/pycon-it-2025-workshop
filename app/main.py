@@ -6,8 +6,7 @@ import time
 from codecarbon import track_emissions, EmissionsTracker
 from http.server import HTTPServer
 from os import getenv
-from prometheus_client import MetricsHandler
-from prometheus_client import Counter
+from prometheus_client import MetricsHandler, Counter
 from string import Template
 
 from transformers import pipeline
@@ -43,10 +42,10 @@ with open("./templates/predict_intensity.html", "r") as f:
 with open("./templates/chat.html", "r") as f:
     chat_html = f.read()
 
-# Zero-shot carbon intensity predictor for low/medium/high
+# carbon intensity predictor for low/medium/high
 predictor = pipeline(
-    "zero-shot-classification",
-    model="typeform/distilbert-base-uncased-mnli",
+    "text-classification",
+    model="jessica-ecosia/carbon-intensity-classifier",
     device=-1,  # CPU
 )
 
@@ -66,20 +65,6 @@ def fetch_carbon_intensity():
     if r.status_code == 200:
         return r.json()["carbonIntensity"]
     return 0
-
-
-def predict_carbon_intensity(text):
-    """
-    Predict the carbon intensity based on the input text.
-    Uses a zero-shot classification model to classify the text into low, medium,
-    or high carbon intensity.
-    """
-    result = predictor(text, candidate_labels=["low", "medium", "high"])
-    return {
-        "sequence": text,
-        "labels": result["labels"],
-        "scores": [round(s, 3) for s in result["scores"]],
-    }
 
 
 class HTTPRequestHandler(MetricsHandler):
@@ -103,13 +88,13 @@ class HTTPRequestHandler(MetricsHandler):
             return
 
         # Run zero-shot classification
-        result = predictor(text, candidate_labels=["low", "medium", "high"])
+        result = predictor(text)
 
         # Build and send JSON response
         payload = {
             "sequence": text,
-            "labels": result["labels"],
-            "scores": [round(s, 3) for s in result["scores"]],
+            "classification": result[0].get("label", "unknown"),
+            "score": round(result[0].get("score", 0.0), 2),
         }
         self.send_response(200)
         self.send_header("Content-Type", "application/json")

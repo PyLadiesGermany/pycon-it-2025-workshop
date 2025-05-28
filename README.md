@@ -18,6 +18,8 @@ This workshop has been developed for PyCon Italy 2025 by @terezaif and @sleepypi
 
 ### Agenda
 
+This has been designed as a self paced workshop, with a short introduction from the workshop leaders, support during the workshop and a collective reflection at the end. It is likely you will not complete all the material before the end of the workshop, particularly the bonus material, but it is our hope that by joining the workshop you feel enabled to continue and also apply these techniques to your own codebases.
+
 * [Introduction: What is Monitoring and Why is it important?](#introduction-what-is-monitoring-why-is-it-important)  
 * [Prerequisites](#prerequisites)  
 * [Section 1: Creating custom metrics and exposing them](#section-1-exposing-metrics)  
@@ -29,17 +31,17 @@ This workshop has been developed for PyCon Italy 2025 by @terezaif and @sleepypi
 
 ## Introduction: What is Monitoring and Why is it important?
 
-Monitoring is the process of observing and measuring the performance of a system, process, or application. It is used to track the health of a system, identify issues, and make informed decisions about how to improve the system. Monitoring is essential for ensuring that a system is running smoothly and efficiently, and for identifying and addressing any problems that may arise. It is also important for tracking the performance of a system over time, and for identifying trends and patterns that may indicate areas for improvement.
+Monitoring is the process of observing and measuring the performance of a system, process, or application. It is used to track the health of a system, identify issues, and make informed decisions about how to improve the system. As one of the pillars of observability, monitoring is essential for ensuring that a system is running smoothly and efficiently, and for identifying and addressing any problems that may arise. It is also important for tracking the performance of a system over time, and for identifying trends and patterns that may indicate areas for improvement/optimization.
 
 ---
 ### Prerequisites
 
-For this workshop you will need [Python 3.12](https://installpython3.com/), [Poetry](https://python-poetry.org/docs/#installation), [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) running on your machine. *(on mac os docker-compose is by default installed with Docker)*
+For this workshop you will need [Python 3.12](https://installpython3.com/), [Poetry](https://python-poetry.org/docs/#installation), [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) running on your machine. *(on mac os docker compose is by default installed with Docker)*
 
 You will also need a free API key for Electricity Map, which you can get by signing up [on their website](https://api-portal.electricitymaps.com/). This key will be used to get the carbon intensity data for a given zone. You will need to set the Zone which you have selected in the code, the default is set to `DE`, which is Germany. You can change this to your preferred zone by changing the `zone` variable in the `main.py` file.
 
 
-Please note that this repository is linted and formatted using [ruff](https://pypi.org/project/black/) with a max line length of 100. This linting is enforced with github actions configured [in the .github/workflow/lint.yml file](./github/workflow/lint.yml)
+Please note that this repository is linted and formatted using [ruff](https://pypi.org/project/black/) with a max line length of 100. This linting is enforced with github actions configured [in the .github/workflow/lint.yml file](./github/workflow/lint.yml). If you find errors in the code or improvements for the workshop, please feel free to fix them and submit a pull request. We will review it as soon as possible.
 
 ## Workshop Content
 
@@ -63,11 +65,11 @@ For this section, you can use the following command to install dependencies and 
 make dev
 ```
 
-This command will start a Python server which will have the endpoint `/carbon_intensity` available for the hard coded zone (this should match what your api key zone is set to). The server will be running on `localhost:8001/carbon_intensity` and display the current carbon intensity for that zone.
+This command will start a Python server which will have the endpoint `/carbon_intensity` available for the hard coded zone (this should match what your api key zone is set to). The server will be running on `localhost:8001/carbon_intensity` which displays the current carbon intensity for the specified zone.
 
 #### Exposing metrics
 
-To export our metrics we will need to have a server with a handler to *handle* the metrics. We can do this by changing the base class of our HTTPRequestHandler to the `MetricsHandler` provided by the Prometheus Python client. We also need to add the condition for the `/metrics` endpoint below our `/carbon_intensity` endpoint condition. *(Don't forget to import the `MetricsHandler` from the `prometheus_client`)*
+To export our metrics we will need to have a server with a handler to *handle* the metrics. We can do this by changing the base class of our HTTPRequestHandler to the `MetricsHandler` provided by the [Prometheus Python client](https://pypi.org/project/prometheus-client/). We also need to add the condition for the `/metrics` endpoint below our `/carbon_intensity` endpoint condition. *(Don't forget to import the `MetricsHandler` from the `prometheus_client`)*
 
 ``` python
 class HTTPRequestHandler(MetricsHandler):
@@ -82,7 +84,7 @@ class HTTPRequestHandler(MetricsHandler):
 Now that we can expose metrics, we need to create them. Prometheus has a few different data types but the most straight forward is a `Counter`. Counters always increment and can be used to track, for example, the number of requests received (you can then divide this unit over time to calculate requests per second). To create a `Counter`, import it from the Prometheus Python client and instantiate it.
 
 ``` python
-from prometheus_client import Counter
+from prometheus_client import MetricsHandler, Counter
 requestCounter = Counter('requests_total', 'total number of requests', ['status', 'endpoint']) # can be declared as a global variable
 ```
 
@@ -106,7 +108,8 @@ This will allow us to track the number of requests received for each endpoint an
 
 ### 🏆 Challenge 1:
 
-Implement the above changes in the `main.py` file. Now try restarting the server (`control c` will stop it) and go to `localhost:8001/metrics`. What do you see? What do you see if you visit `localhost:8001/carbon_intensity` a few times and then go back to the `/metrics` endpoint? As well as a counter for the metric you defined you will also see a gauge has been created, this is a metric that represents the current value of a variable, in this case the number of requests received.
+Implement the above changes in the `main.py` file. Now try restarting the server (`control c` will stop it) and go to `localhost:8001/metrics`. What do you see? What do you see if you visit `localhost:8001/carbon_intensity` a few times and then go back to the `/metrics` endpoint? As well as a counter for the metric you defined you will also see a gauge has been created (with prefix `_created`), this records the Unix timestamp when that metric was first instantiated. This extra series is purely metadata—intended for OpenMetrics compatibility—and does not represent a second, distinct count of events. ([source](https://prometheus.github.io/client_python/instrumenting/)).
+
 You will also see other (base) metrics, what do these base metrics represent? What happens if you call `.inc()` somewhere else?
 
 Congratulations! You have now created your first custom metric and exposed it via a handler. 🎉🎉🎉
@@ -120,27 +123,32 @@ How about creating a custom metric to measure the latency of your requests? You 
 
 #### Why
 
-The tech industry is responsible for a significant portion of global carbon emissions. By measuring the carbon emissions of our applications, we can make informed decisions about how to reduce our carbon footprint. This is important for both the environment and for the sustainability of our industry, however, there is often other benefits associated with these changes such as cost savings and performance improvements. As carbon conscientious  developers the first step is knowing the current state of affairs, this where carbon metrics come in.
+The tech industry is responsible for a significant portion of global carbon emissions. By measuring the carbon emissions of our applications, we can make informed decisions about how to reduce our carbon footprint. This is important for both the environment and for the sustainability of our industry, however, there is often other benefits associated with these changes such as cost savings and performance improvements. As carbon conscientious developers the first step is knowing the current state of affairs, this where carbon metrics come in.
 
 We will be using the Python library from [Codecarbon](https://codecarbon.io/) to instrument our code just as we have done above and pass out the metrics to Prometheus so we can extend our observability stack to include carbon emissions.
 
-#### Common impact Metrics
+#### Impact Metrics
 
-Codecarbon's full methodology 
+We will use two libraries for measuring our emissions impact, both have their own methodologies for calculating impact metrics:
 
-##### Energy 
+##### Code Carbon
+* **Carbon Intensity (CI) [measured in kgCO2.eq]** of the consumed electricity is calculated as a weighted average of the emissions from the different energy sources that are used to generate electricity, including fossil fuels and renewables. ([Methodology](https://mlco2.github.io/codecarbon/methodology.html#carbon-intensity))
 
-##### GHG
+##### Ecologits
+
+EcoLogits employs the Life Cycle Assessment (LCA) methodology, as defined by ISO 14044, to estimate the environmental impacts of requests made to generative AI inference services. [[Methodology](https://ecologits.ai/latest/methodology/)]
+
+* **Global Warming Potential (GWP):** Evaluates the impact on global warming in terms of CO2 equivalents.
+* **Abiotic Resource Depletion for Elements (ADPe):** Assesses the consumption of raw minerals and metals, expressed in antimony equivalents.
+* **Primary Energy (PE):** Calculates energy consumed from natural sources, expressed in megajoules.
 
 
 ### Codecarbon Quickstart
 
 ```sh
-# In a new terminal window from the root of the repository
-# Make sure the app is not already running elsewhere!!
-make dev
+# Install dependencies if not done on this branch version already
+make deps
 
-# Then run codecarbon monitor
 make codecarbon-monitor
 # You may have to put in your computer's password to allow codecarbon to access your machine's hardware
 ```
@@ -165,7 +173,7 @@ Run `control c` to stop the monitoring.
 
 However, we want to know more about our specific application, and specific operations within it, for this we can use the `codecarbon` library to instrument our application.
 
-Our application has a second endpoint `/predict_carbon_intensity` which fetches the historic carbon intensity for the given zone for the last 24 hours and predicts the intensity in an hours time. The function `predict_carbon_intensity()` uses a transformer zeo shot model to do this. We can use the `track_emissions` decorator from the `codecarbon` library to track the emissions of this function. This will allow us to see the emissions of this specific operation and how it changes over time.
+Our application has a second endpoint `/predict` which predicts the intensity of a given activity into one of three classes high, middle, or low intensity  The function `predict_carbon_intensity()` uses a transformer model to do this. This is a toy model, and not very useful but is there to provide a more computation task to monitor. If you are interested to see how you can also monitor carbon emissions when training see the bonus material in [./model_training/README.md](./model_training/README.md). We can use the `track_emissions` decorator from the `codecarbon` library to track the emissions of this function. This will allow us to see the emissions of this specific operation and how it changes over time.
 
 ``` python
 from codecarbon import track_emissions
@@ -181,11 +189,14 @@ Now let's start everything running again (make sure you have **stopped** it firs
 # In a new terminal window from the root of the repository
 # Make sure the app is not already running elsewhere!!
 make dev
-
-# Now visit your app's page, if it will not load, you need to go back to the terminal and enter your password to allow codecarbon to track your machines hardware
 ```
 
-Refresh the page a couple of times, you will see the logs for your metrics and a new file `emissions.csv`has been created. One thing you will notice is that this slows down the application, this is because the `track_emissions` decorator is running a separate process to track the emissions of the function. This is not ideal for production, but it is useful for development and testing.
+
+Visit your app's page http://localhost:8001/predict, if it will not load, you need to go back to the terminal and enter your password to allow codecarbon to track your machines hardware. Try putting in an activity such as `driving 10 hours` and click `Predict`. You will see the predicted category and it's probability.
+
+
+Refresh the page a couple of times, you will see the logs for your metrics and a new file `emissions.csv`has been created inside the `app` directory. One thing you may notice is that this slows down the application, this is because the `track_emissions` decorator is running a separate process to track the emissions of the function. This is not ideal for production, but it is useful for development and testing. 
+TODO: check why its slow
 
 
 ### Visualizing our metrics with Codecarbon
@@ -205,26 +216,26 @@ Then open [http://127.0.0.1:3333/](http://127.0.0.1:3333/) in your browser to se
 
 ### 🏆 Challenge 2:
 
-Ok your turn! Set up the Codecarbon library to track the emissions of your application. You will see that our application produces such a small amount of emissions currently that it doesn't register much on this dashboard. However, as you scale your application and add more features, you will see this number increase.
+Ok your turn! Set up the Codecarbon library to track the emissions of your application. You will see that our application produces such a small amount of emissions currently that it doesn't register on this dashboard, even though we can see values in the CSV. However, as you scale your application and add more features, you will see this number increase.
 
 
 ## Section 3: Putting it all together and visualizing in Grafana
 
-While the Codecarbon dashboard is great for tracking the emissions of your application, it is not as flexible as Grafana. [Grafana](http://grafana.com) is an open-source metric visualization tool, which can be used to create dashboards containing many graphs and visualize your data in variety of ways. Grafana can visualize data from multiple sources, including Prometheus. In this section, we will show you how to pass the metrics from Codecarbon to Prometheus and then visualize them in Grafana.
+While the Codecarbon dashboard is great for tracking the emissions of your application, it is not as flexible as a tool like Grafana. [Grafana](http://grafana.com) is an open-source metric visualization tool, which can be used to create dashboards containing many graphs and visualize your data in variety of ways. Grafana can visualize data from multiple sources, including Prometheus. In this section, we will show you how to pass the metrics from Codecarbon to Prometheus and then visualize them in Grafana.
 
 
-For this section, we will need to run the app via `docker-compose up --build` this will also run our instance of Prometheus, Grafana and in addition a Prometheus Gateway. We have already configured this to connect the services, if you are interested in learning more about how to do this, take a look at the [docker-compose.yaml](./docker-compose.yaml), [grafana_datasource.yaml](./grafana/grafana_datasource.yaml) and [promtheus.yaml](./prometheus/prometheus.yaml) files.
+We will now need to run the app via `docker compose up --build` this will also run our instance of Prometheus, Grafana and in addition a Prometheus Gateway. We have already configured this to connect the services, if you are interested in learning more about how to do this, take a look at the [docker-compose.yaml](./docker-compose.yaml), [grafana_datasource.yaml](./grafana/grafana_datasource.yaml) and [promtheus.yaml](./prometheus/prometheus.yaml) files.
 
-Grafana uses authentication, which, for this workshop, is configured in the `docker-compose.yaml` file. The credentials configured for this workshop are:
+Lastly Grafana uses authentication, which, for this workshop, is configured in the `docker-compose.yaml` file. The credentials configured for this workshop are:
 
 ```
 username: pycon2024
 password: workshop
 ```
 
-### Passing our metrics to Prometheus so we can visualize them in Grafana
+### Passing our metrics to Prometheus so we can visualize our metrics in Grafana
 
-To have a more complete view of our application, we can pass the metrics to Prometheus and add them to our dashboard (or start a new one) in Grafana. Note that we have to do this via a Prometheus gateway, as the Codecarbon library does not have a server for Prometheus to scrape, [read more about the Prometheus Gateway](#prometheus-gateway).
+To pass our carbon metrics we need to use a Prometheus gateway, as the Codecarbon library does not have a server for Prometheus to scrape, [read more about the Prometheus Gateway](#prometheus-gateway).
 
 First stop the app if it is running and update your tracker:
 
@@ -254,47 +265,58 @@ This will show you the average emissions over the time range you have selected. 
 
 ### 🏆 Challenge 3:
 
-Follow the instructions above to set up Grafana and visualize your metrics. Try out different queries and visualizations to see how your emissions change over time. You can also try adding other metrics from your application to your dashboard to see how they relate to your emissions.
+Follow the instructions above to set up Grafana and visualize your metrics. Try out different queries and visualizations to see how your emissions change over time. You can also try adding other metrics from your application to your dashboard (such as the request counter) to see how they relate to your emissions.
 
 
-## Section 4: Other sources for impact metrics
+## Section 4: ✨ BONUS ✨ Measuring impact when we don't know information about where code is running
 
 ### Ecologits
 
-Unfortunately we might be in the situation where we are not able to use Codecarbon to calculate emissions, for example if we are using a cloud service or a third party API. In this case, we can use the [Ecologits](https://ecologits.com/) library to calculate the emissions of our code. This library uses the [Greenhouse Gas Protocol](https://ghgprotocol.org/) to calculate the emissions of your code based on the energy consumption of your machine.
-``` python
-from ecologits import Ecologits
-ecologits = Ecologits()
+Unfortunately we might be in the situation where we are not able to use Codecarbon to calculate emissions, for example if we are using a third party API. We can use the [Ecologits](https://ecologits.com/) library to calculate estimates for the emissions for some of the popular LLM services, such as OpenAI.
 
-ecologits.start()
-# Your code here
-ecologits.stop()
+To demonstrate this, we have built a small mock LLM service which will return a mocked response and usage values for tokens and latency. We can then use this fake data to calculate the estimated emissions for our mock service. We pretend that the third party service in this case is Openai, however, please note this is purely for demonstration purposes and does not represent the actual emissions of OpenAI. If you have an Openai API key you could adjust the code to call it instead of the mock service.
+
+If you have built the services with `docker compose up --build` the mock service will be running on `http://localhost:8002/`. You can call the `/chat` endpoint with a JSON body containing the `prompt` and `model` parameters, for example:
+
 ```
-This will calculate the emissions of your code and print them to the console. You can also use the `ecologits.get_emissions()` method to get the emissions as a dictionary.
-
-
-### Integrating Codecarbon in the transformers trainer
-
-The Codecarbon library can be integrated into the Huggingface transformers trainer to track the carbon emissions of your training jobs. This is done by including codecarbon in the [report_to]() argument of the Trainer class, infact by default this is set to `all` meaning it's included by default. 
-
-``` python
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=3,
-    per_device_train_batch_size=16,
-    save_steps=10_000,
-    save_total_limit=2,
-)
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_dataset,
-    eval_dataset=eval_dataset,
-    report_to="codecarbon",
-)
+curl -X POST http://localhost:8002/chat -H "Content-Type: application/json" -d '{
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the carbon intensity of the electricity in Germany?"
+    }
+  ],
+  "model": "gpt-3.5-turbo"
+}'
 ```
-This will track the emissions during training and save them to a CSV file in the output directory. You can then use the Codecarbon library to visualize the emissions as we did above.
 
+You should see a response similar to:
+
+```
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "Mock response to: What is the carbon intensity of the electricity in Germany?",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1748456161,
+  "id": "chatcmpl-1234567890",
+  "model": "gpt-3.5-turbo",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 37,
+    "prompt_tokens": 42,
+    "total_tokens": 55
+  }
+}
+```
+
+We have also built in a endpoint for our main server `/chat` which will allow you to enter a message and see the emission metrics based on the fake output. You will see we pass these impact metrics to the output, you challenge? Find a good type of metric from Prometheus to use to track these emissions and create dashboard panels in Grafana to visualize them. Be careful the impacts come as Ranges with a max and min value, you will have to think about how you pass them through to Prometheus.
 
 
 ✨ **Go forth and Monitor for a greener codebase!!** ✨
@@ -432,7 +454,11 @@ Check you terminal windows to see if you can find where it is running and use `c
 
 ### Python version
 
-If the App will not start locally and you receive an error referring the version, it may be because you do not have a suitable version of Python available on your machine. The version should be 3.11 or above.
+If the App will not start locally and you receive an error referring the version, it may be because you do not have a suitable version of Python available on your machine. The version should be 3.12 or above.
+
+### You don't see your custom metrics in the `/metrics` endpoint
+
+This may be that you have not yet called `inc()` for instance if it is a Counter.
 
 ### Requests error from Codecarbon library
 
@@ -501,4 +527,4 @@ The error arises when Codecarbon tries to push emission data to a Prometheus gat
 
 ## Contributing to this repository
 
-See an error or potential improvement? We welcome issues or PRs to this repository. Tag @Tereza or @sleepypioneer in your PR and we will review it as soon as possible. 
+See an error or potential improvement? We welcome issues or PRs to this repository. Tag @terezaif or @sleepypioneer in your PR and we will review it as soon as possible. 

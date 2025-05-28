@@ -80,15 +80,15 @@
             }
             const data = await response.json();
             // Build result HTML with highest-scoring label in bold
-            let html = '';
-            data.labels.forEach((label, idx) => {
-                const score = data.scores[idx];
-                if (idx === 0) {
-                    html += `<strong>${label}: ${score}</strong><br/>`;
-                } else {
-                    html += `${label}: ${score}<br/>`;
-                }
-            });
+            let html = `<strong> ${data.classification}</strong> <br /> ${(data.score * 100).toFixed(2)}% probability`;
+            // data.labels.forEach((label, idx) => {
+            //     const score = data.scores[idx];
+            //     if (idx === 0) {
+            //         html += `<strong>${label}: ${(score * 100).toFixed(2)}% probability</strong><br/>`;
+            //     } else {
+            //         html += `${label}: ${(score * 100).toFixed(2)}% probability<br/>`;
+            //     }
+            // });
             document.getElementById('result').innerHTML = html;
         });
     </script>

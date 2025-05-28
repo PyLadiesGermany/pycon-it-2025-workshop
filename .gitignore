@@ -3,6 +3,8 @@ app/emissions.csv
 app/powermetrics_log.txt
 powermetrics_log.txt
 
+model_training/carbon-intensity-classifier/*
+
 
 .DS_Store
 
