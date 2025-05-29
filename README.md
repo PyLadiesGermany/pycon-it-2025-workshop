@@ -196,8 +196,6 @@ Visit your app's page http://localhost:8001/predict, if it will not load, you ne
 
 
 Refresh the page a couple of times, you will see the logs for your metrics and a new file `emissions.csv`has been created inside the `app` directory. One thing you may notice is that this slows down the application, this is because the `track_emissions` decorator is running a separate process to track the emissions of the function. This is not ideal for production, but it is useful for development and testing. 
-TODO: check why its slow
-
 
 ### Visualizing our metrics with Codecarbon
 
