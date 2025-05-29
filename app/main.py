@@ -6,13 +6,13 @@ import time
 from codecarbon import track_emissions, EmissionsTracker
 from http.server import HTTPServer
 from os import getenv
-from prometheus_client import MetricsHandler
-from prometheus_client import Counter
+from prometheus_client import MetricsHandler, Counter
 from string import Template
 
 from transformers import pipeline
 from util import artificial_503, artificial_latency
 from urllib.parse import urlparse, parse_qs
+from chat import get_chat_emissions
 
 # load environment variables from .env file
 from dotenv import load_dotenv
@@ -38,10 +38,14 @@ html_template = Template(html_string)
 with open("./templates/predict_intensity.html", "r") as f:
     predict_html = f.read()
 
-# Zero-shot carbon intensity predictor for low/medium/high
+# Load the chat HTML template
+with open("./templates/chat.html", "r") as f:
+    chat_html = f.read()
+
+# carbon intensity predictor for low/medium/high
 predictor = pipeline(
-    "zero-shot-classification",
-    model="typeform/distilbert-base-uncased-mnli",
+    "text-classification",
+    model="jessica-ecosia/carbon-intensity-classifier",
     device=-1,  # CPU
 )
 
@@ -61,20 +65,6 @@ def fetch_carbon_intensity():
     if r.status_code == 200:
         return r.json()["carbonIntensity"]
     return 0
-
-
-def predict_carbon_intensity(text):
-    """
-    Predict the carbon intensity based on the input text.
-    Uses a zero-shot classification model to classify the text into low, medium,
-    or high carbon intensity.
-    """
-    result = predictor(text, candidate_labels=["low", "medium", "high"])
-    return {
-        "sequence": text,
-        "labels": result["labels"],
-        "scores": [round(s, 3) for s in result["scores"]],
-    }
 
 
 class HTTPRequestHandler(MetricsHandler):
@@ -98,13 +88,13 @@ class HTTPRequestHandler(MetricsHandler):
             return
 
         # Run zero-shot classification
-        result = predictor(text, candidate_labels=["low", "medium", "high"])
+        result = predictor(text)
 
         # Build and send JSON response
         payload = {
             "sequence": text,
-            "labels": result["labels"],
-            "scores": [round(s, 3) for s in result["scores"]],
+            "classification": result[0].get("label", "unknown"),
+            "score": round(result[0].get("score", 0.0), 2),
         }
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -138,6 +128,31 @@ class HTTPRequestHandler(MetricsHandler):
             return
         elif endpoint.startswith("/predict_carbon_intensity"):
             return self.predict_intensity()
+        elif endpoint == "/chat":
+            # Serve the HTML form for chat emissions
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(chat_html.encode("utf-8"))
+            return
+        elif endpoint.startswith("/chat_emissions"):
+            # Expecting query: /chat_emissions?text=your+message
+            parsed = urlparse(self.path)
+            params = parse_qs(parsed.query)
+            text = params.get("text", [""])[0]
+            if not text:
+                self.send_error(400, "Missing `text` query parameter")
+                return
+
+            # Get chat response and emission metrics
+            result = get_chat_emissions(text)
+
+            # Return JSON
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode("utf-8"))
+            return
         elif endpoint == "/metrics":
             return super(HTTPRequestHandler, self).do_GET()
         else:

@@ -1,0 +1,43 @@
+activity,label
+"walk 10km",low
+"cycle to work",low
+"run in the park",low
+"walk from home to the supermarket",low
+"go for a 5km hike",low
+"bike from Berlin to Potsdam",low
+"skateboard to school",low
+"walk the dog",low
+"row a boat on the lake",low
+"scooter 3km to the office",low
+"ride a horse for 10km",low
+"take the tram in Berlin",medium
+"ride a city bus",medium
+"take the subway",medium
+"travel by electric scooter",medium
+"take a regional train from Berlin to Leipzig",medium
+"sail from Genoa to Sardinia",medium
+"take a ferry across the river",medium
+"catch an intercity train from Milan to Naples",medium
+"drive an electric car 40km",medium
+"take a bus from Paris to Lyon",medium
+"take an overnight train",medium
+"carpool in an electric car",medium
+"take a hybrid taxi 8km",medium
+"commute by e-bike",medium
+"take a hydrogen bus to the airport",medium
+"drive a petrol car 30km",high
+"drive an SUV across the city",high
+"fly from Berlin to Rome",high
+"take a domestic flight",high
+"fly from New York to London",high
+"ride a motorcycle 50km",high
+"use a rideshare app for 10km",high
+"take a diesel taxi 5km",high
+"fly from Paris to Barcelona",high
+"fly from Tokyo to Sydney",high
+"cruise ship from Miami to Bahamas",high
+"private jet from Zurich to Nice",high
+"drive a diesel van for deliveries",high
+"helicopter ride over New York",high
+"take a long-haul flight",high
+"drive alone in a petrol car 100km",high

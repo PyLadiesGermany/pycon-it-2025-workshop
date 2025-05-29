@@ -16,13 +16,12 @@ RUN pip install --no-cache-dir \
     python-dotenv \
     openai
 
-# 4. Copy service code and env file
-COPY mock_chat_service/mock_chat.py .  
-COPY .env .
+# 4. Copy service code 
+COPY ./mock_chat.py .  
 
 # 5. Expose the port your service listens on
-EXPOSE 5000
+EXPOSE 8002
 
 # 6. Launch the service
-#    (If your code ends with: app.run(host="0.0.0.0", port=5000))
-CMD ["python", "mock_llm_service.py"]
+#    (If your code ends with: app.run(host="0.0.0.0", port=8002))
+CMD ["python", "mock_chat.py"]
