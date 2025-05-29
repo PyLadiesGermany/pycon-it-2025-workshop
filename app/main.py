@@ -26,9 +26,9 @@ ELECTRICITY_MAP_API_KEY = getenv("ELECTRICITY_MAP_API_KEY")
 
 # GIVEN ZONE - FEEL FREE TO CHANGE
 ZONE = "DE"
-carbon_intensity_url = f"https://api.electricitymap.org/v3/carbon-intensity/latest?zone={ZONE}"
-
-requestCounter = Counter("requests_total", "total number of requests", ["status", "endpoint"])
+carbon_intensity_url = (
+    f"https://api.electricitymap.org/v3/carbon-intensity/latest?zone={ZONE}"
+)
 
 with open("./templates/carbonIntensity.html", "r") as f:
     html_string = f.read()
@@ -53,6 +53,10 @@ tracker = EmissionsTracker(
     project_name="python-app",
     save_to_prometheus=True,
     prometheus_url="http://pushgateway:9091",
+)
+
+requestCounter = Counter(
+    "requests_total", "total number of requests", ["status", "endpoint"]
 )
 
 
@@ -113,12 +117,14 @@ class HTTPRequestHandler(MetricsHandler):
         if endpoint == "/carbon_intensity":
             requestCounter.labels(status=200, endpoint=endpoint).inc()
             return self.get_carbon_intensity()
+
         elif endpoint == "/background_image":
             with open("./templates/forest-background.jpg", "rb") as f:
                 self.send_response(200)
                 self.send_header("Content-type", "image/jpg")
                 self.end_headers()
                 self.wfile.write(f.read())
+
         elif endpoint == "/predict":
             # Serve the HTML form for carbon intensity prediction
             self.send_response(200)
@@ -126,8 +132,10 @@ class HTTPRequestHandler(MetricsHandler):
             self.end_headers()
             self.wfile.write(predict_html.encode("utf-8"))
             return
+
         elif endpoint.startswith("/predict_carbon_intensity"):
             return self.predict_intensity()
+
         elif endpoint == "/chat":
             # Serve the HTML form for chat emissions
             self.send_response(200)
@@ -135,6 +143,7 @@ class HTTPRequestHandler(MetricsHandler):
             self.end_headers()
             self.wfile.write(chat_html.encode("utf-8"))
             return
+
         elif endpoint.startswith("/chat_emissions"):
             # Expecting query: /chat_emissions?text=your+message
             parsed = urlparse(self.path)
@@ -153,8 +162,10 @@ class HTTPRequestHandler(MetricsHandler):
             self.end_headers()
             self.wfile.write(json.dumps(result).encode("utf-8"))
             return
+
         elif endpoint == "/metrics":
             return super(HTTPRequestHandler, self).do_GET()
+
         else:
             self.send_error(404)
 

@@ -29,19 +29,13 @@ dash = "^2.18.2, <3.0.0"
 dash-bootstrap-components = "^1.0.0, <2.0.0"
 fire = "^0.7.0"
 ecologits = "^0.7.0"
+black = "^25.1.0"
+
 [tool.poetry.dev-dependencies]
-ruff = "^0.4.4"
+black = "^25.1.0"
 
-[tool.ruff]
+[tool.black]
 line-length = 100
-indent-width = 4
-
-[tool.ruff.format]
-# Like Black, use double quotes for strings.
-quote-style = "double"
-
-# Like Black, indent with spaces, rather than tabs.
-indent-style = "space"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
