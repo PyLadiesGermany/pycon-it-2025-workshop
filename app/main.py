@@ -3,7 +3,6 @@ import requests
 import random
 import time
 
-from codecarbon import track_emissions
 from http.server import HTTPServer
 from os import getenv
 from prometheus_client import MetricsHandler, Counter
@@ -75,7 +74,9 @@ class HTTPRequestHandler(MetricsHandler):
         )
         self.wfile.write(bytes_template)
 
-    @track_emissions()
+    ########## ADD YOUR CODE FOR CHALLENGE 2 HERE ###########
+    ### Import track_emissions from codecarbon package ######
+    ###### Add the decorator to the method below ############
     def predict_intensity(self):
         # Expecting query: /predict_carbon_intensity?text=your+activity+description
         parsed = urlparse(self.path)

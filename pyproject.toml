@@ -18,7 +18,6 @@ prometheus-client = "^0.13.1"
 pytest = "^7.0.1"
 pytest-httpserver = "^1.0.4"
 requests = "^2.27.1"
-codecarbon = "^2.3.4"
 python-dotenv = "^1.0.1"
 transformers = "^4.52.3"
 torch = [
