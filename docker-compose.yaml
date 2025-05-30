@@ -4,13 +4,6 @@ services:
     ports:
       - "8001:8001"
 
-  mock_chat:
-    build:
-      context: ./mock_chat_service
-      dockerfile: Dockerfile
-    ports:
-      - "8002:8002"
-
   prometheus:
     image: prom/prometheus
     ports:

@@ -12,7 +12,6 @@ from string import Template
 from transformers import pipeline
 from util import artificial_503, artificial_latency
 from urllib.parse import urlparse, parse_qs
-from chat import get_chat_emissions
 
 # load environment variables from .env file
 from dotenv import load_dotenv
@@ -37,10 +36,6 @@ html_template = Template(html_string)
 # Load the predict-intensity HTML template
 with open("./templates/predict_intensity.html", "r") as f:
     predict_html = f.read()
-
-# Load the chat HTML template
-with open("./templates/chat.html", "r") as f:
-    chat_html = f.read()
 
 # carbon intensity predictor for low/medium/high
 predictor = pipeline(
@@ -135,33 +130,6 @@ class HTTPRequestHandler(MetricsHandler):
 
         elif endpoint.startswith("/predict_carbon_intensity"):
             return self.predict_intensity()
-
-        elif endpoint == "/chat":
-            # Serve the HTML form for chat emissions
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(chat_html.encode("utf-8"))
-            return
-
-        elif endpoint.startswith("/chat_emissions"):
-            # Expecting query: /chat_emissions?text=your+message
-            parsed = urlparse(self.path)
-            params = parse_qs(parsed.query)
-            text = params.get("text", [""])[0]
-            if not text:
-                self.send_error(400, "Missing `text` query parameter")
-                return
-
-            # Get chat response and emission metrics
-            result = get_chat_emissions(text)
-
-            # Return JSON
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps(result).encode("utf-8"))
-            return
 
         elif endpoint == "/metrics":
             return super(HTTPRequestHandler, self).do_GET()
