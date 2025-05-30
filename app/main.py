@@ -3,9 +3,8 @@ import requests
 import random
 import time
 
-from http.server import HTTPServer
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from os import getenv
-from prometheus_client import MetricsHandler, Counter
 from string import Template
 
 from transformers import pipeline
@@ -48,9 +47,9 @@ predictor = pipeline(
     device=-1,  # CPU
 )
 
-requestCounter = Counter(
-    "requests_total", "total number of requests", ["status", "endpoint"]
-)
+############ ADD YOUR CODE FOR CHALLENGE 1 HERE ############
+##### IMPORT the Counter class from prometheus_client ######
+############## CREATE A requestCounter METRIC ##############
 
 
 def fetch_carbon_intensity():
@@ -64,7 +63,10 @@ def fetch_carbon_intensity():
     return 0
 
 
-class HTTPRequestHandler(MetricsHandler):
+######################### ADD YOUR CODE FOR CHALLENGE 1 HERE ###################
+######################## IMPORT the MetricsHandler class #######################
+# Update the HTTPRequestHandler to take the MetricsHandler base class ##########
+class HTTPRequestHandler(BaseHTTPRequestHandler):
     @artificial_latency
     def get_carbon_intensity(self):
         self.do_HEAD()
@@ -110,7 +112,8 @@ class HTTPRequestHandler(MetricsHandler):
     def do_GET(self):
         endpoint = self.path
         if endpoint == "/carbon_intensity":
-            requestCounter.labels(status=200, endpoint=endpoint).inc()
+            ############ ADD YOUR CODE FOR CHALLENGE 1 HERE ##############
+            ############### INCREMENT THE REQUESTS COUNTER ###############
             return self.get_carbon_intensity()
 
         elif endpoint == "/background_image":
@@ -131,8 +134,8 @@ class HTTPRequestHandler(MetricsHandler):
         elif endpoint.startswith("/predict_carbon_intensity"):
             return self.predict_intensity()
 
-        elif endpoint == "/metrics":
-            return super(HTTPRequestHandler, self).do_GET()
+        ############# ADD YOUR CODE FOR CHALLENGE 1 HERE ##############
+        ################## ADD THE /metrics ENDPOINT ##################
 
         else:
             self.send_error(404)
