@@ -1,5 +1,7 @@
 # Monitoring carbon emissions: making the impact of your Python code visible 🏭 📈
 
+<img src="./imgs/Monitoring_carbon_emissions_PyConIT.001.png" alt="opening slide with name of workshop" width="800">
+
 *“If the Internet was a country, it would be the 4th largest polluter”*  [[1](https://www.sustainablewebmanifesto.com/#citation)]
 
 This workshop is for developers, data scientists, and anyone curious about their code’s environmental footprint. No prior observability or carbon-metrics experience is needed—just basic Python and Docker skills.
@@ -12,6 +14,8 @@ Through hands-on exercises you will:
 
 Join us to gain hands-on experience making your code more carbon-conscious, and leave equipped to integrate these skills into your daily work—making a real difference for our planet.
 
+<img src="./imgs/Monitoring_carbon_emissions_PyConIT.002.png" alt="slide with speaker profile for Tereza Iofciu and Jessica Greene" width="800">
+
 This workshop has been developed for PyCon Italy 2025 by @terezaif and @sleepypioneer. It builds on material originally developed by @sleepypioneer and @jasongwartz, with iterations including work from @emilywoods, @Vinesse and @Simpcyclassy.
 
 ---
@@ -20,17 +24,17 @@ This workshop has been developed for PyCon Italy 2025 by @terezaif and @sleepypi
 
 This has been designed as a self paced workshop, with a short introduction from the workshop leaders, support during the workshop and a collective reflection at the end. It is likely you will not complete all the material before the end of the workshop, particularly the bonus material, but it is our hope that by joining the workshop you feel enabled to continue and also apply these techniques to your own codebases.
 
-* [Introduction: What is Monitoring and Why is it important?](#introduction-what-is-monitoring-why-is-it-important) [~5 minutes]
+* [Introduction: What is Monitoring and Why is it important?](#introduction-what-is-monitoring-and-why-is-it-important) [~5 minutes]
   * [Prerequisites & repository layout](#prerequisites)  [~10 minutes]
-* [Section 1: Creating custom metrics and exposing them](#section-1-getting-started-creating-custom-metrics-and-exposing-metrics)
-  * [Challenge 1](#🏆-challenge-1) [~15 minutes]
+* [Section 1: Creating custom metrics and exposing them](#section-1-getting-started-creating-custom-metrics-and-exposing-metrics) [~5 minutes]
+  * [Challenge 1](#-challenge-1) [~15 minutes]
 * [Section 2: Exposing carbon metrics with Code Carbon](#section-2-exposing-carbon-metrics-with-code-carbon) [~5 minutes]
   * [Codecarbon quickstart](#codecarbon-quickstart) [~5 minutes]
-  * [Challenge 2](#🏆-challenge-2) [~10 minutes]
+  * [Challenge 2](#-challenge-2) [~5 minutes]
 * [Section 3: Putting it all together and visualizing in Grafana](#section-3-putting-it-all-together-and-visualizing-in-Grafana) [~10 minutes]  
-  * [Challenge 3](#🏆-challenge-3) [~20 minutes]
-* [Closing thoughts](#Section 4: ✨ BONUS ✨ Measuring impact when we don't know information about where code is running) [~10 minutes]
-* [Section 4: ✨ BONUS ✨ Measuring impact when we don't know information about where code is running](#section-4-✨-bonus-✨)
+  * [Challenge 3](#-challenge-3) [~20 minutes]
+* [Closing thoughts](#closing-thoughts) [~10 minutes]
+* [Section 4: ✨ BONUS ✨ Measuring impact when we don't know information about where code is running](#section-4--bonus-)
 * [Troubleshooting](#troubleshooting)  
 
 ---
@@ -44,10 +48,10 @@ Monitoring is the process of observing and measuring the performance of a system
 
 For this workshop you will need [Python 3.12](https://installpython3.com/), [Poetry](https://python-poetry.org/docs/#installation), [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) running on your machine. *(on mac os docker compose is by default installed with Docker)*
 
-You will also need a free API key for Electricity Map, which you can get by signing up [on their website](https://api-portal.electricitymaps.com/). This key will be used to get the carbon intensity data for a given zone. You will need to set the Zone which you have selected in the code, the default is set to `DE`, which is Germany. You can change this to your preferred zone by changing the `zone` variable in the `main.py` file.
+You will also *need a free API key for Electricity Maps**, which you can get by signing up [on their website](https://api-portal.electricitymaps.com/). This key will be used to get the carbon intensity data for a given zone. You will need to set the Zone which you have selected in the code, the default is set to `DE`, which is Germany. You can change this to your preferred zone by changing the `zone` variable in the `main.py` file.
 
 
-Please note that this repository is linted and formatted using [Black](https://pypi.org/project/black/) with a max line length of 100. This linting is enforced with github actions configured in the [.github/workflow/lint.yml file](./github/workflow/lint.yml). If you find errors in the code or improvements for the workshop, please feel free to fix them and submit a pull request. We will review it as soon as possible.
+Please note that this repository is linted and formatted using [Black](https://pypi.org/project/black/) with a max line length of 100. This linting is enforced with github actions configured in the [.github/workflow/lint.yml file](./github/workflow/lint.yml). If you find errors in the code or improvements for the workshop, please feel free to fix them and submit a pull request ([contributing guide](#contributing-to-this-repository)).
 
 ### Repository Layout
 
@@ -187,6 +191,7 @@ EcoLogits employs the Life Cycle Assessment (LCA) methodology, as defined by ISO
 * **Abiotic Resource Depletion for Elements (ADPe):** Assesses the consumption of raw minerals and metals, expressed in antimony equivalents.
 * **Primary Energy (PE):** Calculates energy consumed from natural sources, expressed in megajoules.
 
+Note these methodologies are developing and more such as water consumption are planned to be added in the future.
 
 ### Codecarbon Quickstart
 
@@ -256,7 +261,7 @@ Then open [http://127.0.0.1:3333/](http://127.0.0.1:3333/) in your browser to se
 
 
 ### 🏆 Challenge 2:
-[~10 minutes]
+[~5 minutes]
 
 Ok your turn! Set up the Codecarbon library to track the emissions of your application. You will see that our application produces such a small amount of emissions currently that it doesn't register on this dashboard, even though we can see values in the CSV. However, as you scale your application and add more features, you will see this number increase.
 
@@ -265,6 +270,7 @@ Ok your turn! Set up the Codecarbon library to track the emissions of your appli
 
 While the Codecarbon dashboard is great for tracking the emissions of your application, it is not as flexible as a tool like Grafana. [Grafana](http://grafana.com) is an open-source metric visualization tool, which can be used to create dashboards containing many graphs and visualize your data in variety of ways. Grafana can visualize data from multiple sources, including Prometheus. In this section, we will show you how to pass the metrics from Codecarbon to Prometheus and then visualize them in Grafana.
 
+### Setup for this section
 
 We will now need to run the app via Docker this will also run our instance of Prometheus, Grafana and in addition a Prometheus Gateway. We have already configured this to connect the services, if you are interested in learning more about how to do this, take a look at the [docker-compose.yaml](./docker-compose.yaml), [grafana_datasource.yaml](./grafana/grafana_datasource.yaml) and [promtheus.yaml](./prometheus/prometheus.yaml) files.
 
@@ -311,19 +317,27 @@ avg(rate(codecarbon_emissions[$__range])) by (project_name)
 This will show you the average emissions over the time range you have selected. You can also change the visualization type to see your data in different ways, such as a graph or a table.
 
 ### 🏆 Challenge 3:
+[~20 minutes]
 
-Follow the instructions above to set up Grafana and visualize your metrics. Try out different queries and visualizations to see how your emissions change over time. You can also try adding other metrics from your application to your dashboard (such as the request counter) to see how they relate to your emissions.
+Follow the instructions above to set up Grafana and visualize your metrics. Try out different queries and visualizations to see how your emissions change over time. You can also try adding other metrics from your application to your dashboard (such as the request counter) to see how they relate to your emissions. If you finish with time to spare, we have a [fourth bonus challenge](#section-4--bonus-) you can do! ✨
+
+<img src="./imgs/Monitoring_carbon_emissions_PyConIT.003.png" alt="slide for Q&A" width="800">
 
 ## Closing thoughts
 
-Congratulations, you have made it through the workshop! We hope you have found it interesting. While we have focused today on monitoring the toy project in this repository, we hope you feel empowered to apply these techniques to your own codebases. Before you go we want to leave you with a few questions to reflect on:
+🎉🎉🎉 Congratulations, you have made it through the workshop! We hope you have found it interesting. While we have focused today on monitoring the toy project in this repository, we hope you feel empowered to apply these techniques to your own codebases. Before you go we want to leave you with a few questions to reflect on:
 
 Q: What other metrics would you like to track in your applications?
 Q: How do you think monitoring your code can help you improve your applications?
 Q: How would you use what you learned today to help you write greener code?
 
+<img src="./imgs/Monitoring_carbon_emissions_PyConIT.004.png" alt="slide with question how would you use what you learned today to help you writer greener code" width="800">
+
+---
 
 ✨ **Go forth and Monitor for a greener codebase!!** ✨
+
+---
 
 ## Section 4: ✨ BONUS ✨ 
 
@@ -335,7 +349,14 @@ Unfortunately we might be in the situation where we are not able to use Codecarb
 
 To demonstrate this, we have built a small mock LLM service which will return a mocked response and usage values for tokens and latency. We can then use this fake data to calculate the estimated emissions for our mock service. We pretend that the third party service in this case is Openai, however, please note this is purely for demonstration purposes and does not represent the actual emissions of OpenAI. If you have an Openai API key you could adjust the code to call it instead of the mock service.
 
-If you have built the services with `docker compose up --build` the mock service will be running on `http://localhost:8002/`. You can call the `/chat` endpoint with a JSON body containing the `prompt` and `model` parameters, for example:
+First checkout the branch `bonus-content-ecologits`:
+
+```sh
+git checkout bonus-content-ecologits
+```
+
+
+Restart the services with `docker compose up --build` a mock chat service will be running on `http://localhost:8002/`. You can call the `/chat` endpoint with a JSON body containing the `prompt` and `model` parameters, for example:
 
 ```
 curl -X POST http://localhost:8002/chat -H "Content-Type: application/json" -d '{
@@ -375,8 +396,11 @@ You should see a response similar to:
 }
 ```
 
-We have also built in a endpoint for our main server `/chat` which will allow you to enter a message and see the emission metrics based on the fake output. You will see we pass these impact metrics to the output, you challenge? Find a good type of metric from Prometheus to use to track these emissions and create dashboard panels in Grafana to visualize them. Be careful the impacts come as Ranges with a max and min value, you will have to think about how you pass them through to Prometheus.
+We have also added an endpoint for our main server `/chat` which will allow you to enter a message and see the emission metrics based on the fake output. You will see we pass these impact metrics to the output. 
 
+🏆 Your challenge? Find a good type of metric from Prometheus to use to track these emissions and create dashboard panels in Grafana to visualize them. 
+
+⚠️ Be careful the impacts come as Ranges with a max and min value, you will have to think about how you pass them through to Prometheus.
 
 ---
 
