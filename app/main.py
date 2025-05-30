@@ -3,7 +3,7 @@ import requests
 import random
 import time
 
-from codecarbon import track_emissions, EmissionsTracker
+from codecarbon import track_emissions
 from http.server import HTTPServer
 from os import getenv
 from prometheus_client import MetricsHandler, Counter
@@ -17,6 +17,11 @@ from urllib.parse import urlparse, parse_qs
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+########### ADD YOUR CODE FOR CHALLENGE 3 HERE ###############
+####### IMPORT EmissionsTracker from codecarbon package ######
+######### UPDATE THE TRACKER TO PUSH TO PROMETHEUS ###########
 
 
 HOST_NAME = "0.0.0.0"  # This will map to available port in docker
@@ -42,12 +47,6 @@ predictor = pipeline(
     "text-classification",
     model="jessica-ecosia/carbon-intensity-classifier",
     device=-1,  # CPU
-)
-
-tracker = EmissionsTracker(
-    project_name="python-app",
-    save_to_prometheus=True,
-    prometheus_url="http://pushgateway:9091",
 )
 
 requestCounter = Counter(
