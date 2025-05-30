@@ -3,21 +3,23 @@ import requests
 import random
 import time
 
-from codecarbon import track_emissions, EmissionsTracker
-from http.server import HTTPServer
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from os import getenv
-from prometheus_client import MetricsHandler, Counter
 from string import Template
 
 from transformers import pipeline
 from util import artificial_503, artificial_latency
 from urllib.parse import urlparse, parse_qs
-from chat import get_chat_emissions
 
 # load environment variables from .env file
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+########### ADD YOUR CODE FOR CHALLENGE 3 HERE ###############
+####### IMPORT EmissionsTracker from codecarbon package ######
+######### UPDATE THE TRACKER TO PUSH TO PROMETHEUS ###########
 
 
 HOST_NAME = "0.0.0.0"  # This will map to available port in docker
@@ -38,10 +40,6 @@ html_template = Template(html_string)
 with open("./templates/predict_intensity.html", "r") as f:
     predict_html = f.read()
 
-# Load the chat HTML template
-with open("./templates/chat.html", "r") as f:
-    chat_html = f.read()
-
 # carbon intensity predictor for low/medium/high
 predictor = pipeline(
     "text-classification",
@@ -49,15 +47,9 @@ predictor = pipeline(
     device=-1,  # CPU
 )
 
-tracker = EmissionsTracker(
-    project_name="python-app",
-    save_to_prometheus=True,
-    prometheus_url="http://pushgateway:9091",
-)
-
-requestCounter = Counter(
-    "requests_total", "total number of requests", ["status", "endpoint"]
-)
+############ ADD YOUR CODE FOR CHALLENGE 1 HERE ############
+##### IMPORT the Counter class from prometheus_client ######
+############## CREATE A requestCounter METRIC ##############
 
 
 def fetch_carbon_intensity():
@@ -71,7 +63,10 @@ def fetch_carbon_intensity():
     return 0
 
 
-class HTTPRequestHandler(MetricsHandler):
+######################### ADD YOUR CODE FOR CHALLENGE 1 HERE ###################
+######################## IMPORT the MetricsHandler class #######################
+# Update the HTTPRequestHandler to take the MetricsHandler base class ##########
+class HTTPRequestHandler(BaseHTTPRequestHandler):
     @artificial_latency
     def get_carbon_intensity(self):
         self.do_HEAD()
@@ -81,7 +76,9 @@ class HTTPRequestHandler(MetricsHandler):
         )
         self.wfile.write(bytes_template)
 
-    @track_emissions()
+    ########## ADD YOUR CODE FOR CHALLENGE 2 HERE ###########
+    ### Import track_emissions from codecarbon package ######
+    ###### Add the decorator to the method below ############
     def predict_intensity(self):
         # Expecting query: /predict_carbon_intensity?text=your+activity+description
         parsed = urlparse(self.path)
@@ -115,7 +112,8 @@ class HTTPRequestHandler(MetricsHandler):
     def do_GET(self):
         endpoint = self.path
         if endpoint == "/carbon_intensity":
-            requestCounter.labels(status=200, endpoint=endpoint).inc()
+            ############ ADD YOUR CODE FOR CHALLENGE 1 HERE ##############
+            ############### INCREMENT THE REQUESTS COUNTER ###############
             return self.get_carbon_intensity()
 
         elif endpoint == "/background_image":
@@ -136,35 +134,8 @@ class HTTPRequestHandler(MetricsHandler):
         elif endpoint.startswith("/predict_carbon_intensity"):
             return self.predict_intensity()
 
-        elif endpoint == "/chat":
-            # Serve the HTML form for chat emissions
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(chat_html.encode("utf-8"))
-            return
-
-        elif endpoint.startswith("/chat_emissions"):
-            # Expecting query: /chat_emissions?text=your+message
-            parsed = urlparse(self.path)
-            params = parse_qs(parsed.query)
-            text = params.get("text", [""])[0]
-            if not text:
-                self.send_error(400, "Missing `text` query parameter")
-                return
-
-            # Get chat response and emission metrics
-            result = get_chat_emissions(text)
-
-            # Return JSON
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps(result).encode("utf-8"))
-            return
-
-        elif endpoint == "/metrics":
-            return super(HTTPRequestHandler, self).do_GET()
+        ############# ADD YOUR CODE FOR CHALLENGE 1 HERE ##############
+        ################## ADD THE /metrics ENDPOINT ##################
 
         else:
             self.send_error(404)
